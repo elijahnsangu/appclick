@@ -1,0 +1,1 @@
+ALTER TABLE "OperationsCaseEvent" ADD COLUMN "sequence" integer GENERATED ALWAYS AS IDENTITY (sequence name "OperationsCaseEvent_sequence_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1);

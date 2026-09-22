@@ -1,0 +1,40 @@
+import "server-only";
+import type en from "./dictionaries/en.json";
+import languine from "./languine.json" with { type: "json" };
+
+export const locales = [
+  languine.locale.source,
+  ...languine.locale.targets,
+] as const;
+
+export type Dictionary = typeof en;
+
+const dictionaries: Record<string, () => Promise<Dictionary>> =
+  Object.fromEntries(
+    locales.map((locale) => [
+      locale,
+      async () => {
+        try {
+          const mod = await import(`./dictionaries/${locale}.json`);
+          return mod.default;
+        } catch {
+          const fallback = await import("./dictionaries/en.json");
+          return fallback.default;
+        }
+      },
+    ])
+  );
+
+export const getDictionary = async (locale: string): Promise<Dictionary> => {
+  const [normalizedLocale] = locale.split("-");
+
+  if (!locales.includes(normalizedLocale as (typeof locales)[number])) {
+    return dictionaries.en();
+  }
+
+  try {
+    return await dictionaries[normalizedLocale]();
+  } catch {
+    return dictionaries.en();
+  }
+};

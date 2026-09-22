@@ -1,0 +1,4 @@
+ALTER TABLE "RepresentativeAuthorization" DROP CONSTRAINT "RepresentativeAuthorization_H1B5H1mZuY67_fkey";--> statement-breakpoint
+ALTER TABLE "RepresentativeAuthorization" DROP CONSTRAINT "RepresentativeAuthorization_businessId_Business_id_fkey";--> statement-breakpoint
+ALTER TABLE "Business" ADD CONSTRAINT "Business_id_sourceApplicationId_key" UNIQUE("id","sourceApplicationId");--> statement-breakpoint
+ALTER TABLE "RepresentativeAuthorization" ADD CONSTRAINT "RepresentativeAuthorization_business_application_fkey" FOREIGN KEY ("businessId","applicationId") REFERENCES "Business"("id","sourceApplicationId") ON DELETE RESTRICT;

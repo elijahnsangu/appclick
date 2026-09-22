@@ -1,0 +1,144 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "marliket-server",
+  "account_id": "fb61a35f950d9c37da31285f3b676d9f",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
+  "r2_buckets": [
+    {
+      "binding": "LISTING_PUBLIC_MEDIA_BUCKET",
+      "bucket_name": "marliket-listing-public-media-development"
+    },
+    {
+      "binding": "LISTING_REVIEW_EVIDENCE_BUCKET",
+      "bucket_name": "marliket-listing-review-evidence-development"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "development",
+    "CORS_ORIGINS": "http://localhost:3000,http://localhost:3001,http://localhost:3004,http://localhost:3005",
+    "LOG_LEVEL": "debug",
+    "LISTING_PUBLIC_MEDIA_BASE_URL": "https://media-dev.marliket.com",
+    "PUBLIC_MARKETPLACE_ENABLED": "false",
+    "USD_VEHICLE_DISPLAY_ENABLED": "false",
+    "VEHICLE_LISTING_PUBLICATION_BLOCK_IDS": "",
+    "VEHICLE_LISTING_PUBLICATION_ENABLED": "false"
+  },
+  "env": {
+    "preview": {
+      "name": "marliket-server-preview",
+      "observability": {
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "invocation_logs": false
+        },
+        "traces": { "enabled": false }
+      },
+      "triggers": {
+        "crons": ["0 1 * * *"]
+      },
+      "r2_buckets": [
+        {
+          "binding": "LISTING_PUBLIC_MEDIA_BUCKET",
+          "bucket_name": "marliket-listing-public-media-preview"
+        },
+        {
+          "binding": "LISTING_REVIEW_EVIDENCE_BUCKET",
+          "bucket_name": "marliket-listing-review-evidence-preview"
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "preview",
+        "CORS_ORIGINS": "https://app-preview.marliket.com,https://pro-preview.marliket.com,https://ops-preview.marliket.com,https://preview.marliket.com,http://localhost:3000,http://localhost:3001",
+        "LOG_LEVEL": "info",
+        "LISTING_PUBLIC_MEDIA_BASE_URL": "https://media-preview.marliket.com",
+        "PUBLIC_MARKETPLACE_ENABLED": "false",
+        "USD_VEHICLE_DISPLAY_ENABLED": "false",
+        "VEHICLE_LISTING_PUBLICATION_BLOCK_IDS": "",
+        "VEHICLE_LISTING_PUBLICATION_ENABLED": "false",
+        // Must match the custom-domain route declared below - this URL drives
+        // secure-cookie + crossSubDomain derivation in packages/auth
+        // (instance.ts / workers.ts). The marliket.com zone must be added to the
+        // Marliket Cloudflare account before this route can be provisioned.
+        "BETTER_AUTH_URL": "https://api-preview.marliket.com"
+      },
+      "routes": [
+        { "pattern": "api-preview.marliket.com", "custom_domain": true }
+      ],
+      // The custom domain is the only stable Preview Worker route.
+      // PR Workers use separate resources instead of this Worker's versions.
+      "workers_dev": false,
+      "preview_urls": false,
+      "secrets": {
+        "required": [
+          "DATABASE_URL",
+          "BETTER_AUTH_SECRET",
+          "LISTING_ASSET_READ_GRANT_KEY",
+          "LISTING_IDENTITY_HASH_KEY",
+          "REPRESENTATIVE_ACCESS_SECRET",
+          "REPRESENTATIVE_WHATSAPP_AUTH_TOKEN",
+          "REPRESENTATIVE_WHATSAPP_ENDPOINT"
+        ]
+      }
+    },
+    "production": {
+      "name": "marliket-server-production",
+      "observability": {
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "invocation_logs": false
+        },
+        "traces": { "enabled": false }
+      },
+      "triggers": {
+        "crons": ["0 1 * * *"]
+      },
+      "r2_buckets": [
+        {
+          "binding": "LISTING_PUBLIC_MEDIA_BUCKET",
+          "bucket_name": "marliket-listing-public-media-production"
+        },
+        {
+          "binding": "LISTING_REVIEW_EVIDENCE_BUCKET",
+          "bucket_name": "marliket-listing-review-evidence-production"
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "production",
+        "CORS_ORIGINS": "https://app.marliket.com,https://pro.marliket.com,https://ops.marliket.com,https://marliket.com,https://www.marliket.com",
+        "LOG_LEVEL": "info",
+        "LISTING_PUBLIC_MEDIA_BASE_URL": "https://media.marliket.com",
+        "PERSONAL_DATA_PROCESSING_ENABLED": "false",
+        "PUBLIC_MARKETPLACE_ENABLED": "false",
+        "USD_VEHICLE_DISPLAY_ENABLED": "false",
+        "VEHICLE_LISTING_PUBLICATION_BLOCK_IDS": "",
+        "VEHICLE_LISTING_PUBLICATION_ENABLED": "false",
+        // Must match the custom-domain route declared below - drives
+        // secure-cookie + crossSubDomain derivation in packages/auth.
+        "BETTER_AUTH_URL": "https://api.marliket.com"
+      },
+      "routes": [{ "pattern": "api.marliket.com", "custom_domain": true }],
+      // Custom domain is the canonical URL; keep per-version Preview URLs on
+      // for safe gradual rollouts (deploy a version, test, then promote).
+      "workers_dev": false,
+      "preview_urls": true,
+      "secrets": {
+        "required": [
+          "DATABASE_URL",
+          "BETTER_AUTH_SECRET",
+          "LISTING_ASSET_READ_GRANT_KEY",
+          "LISTING_IDENTITY_HASH_KEY",
+          "REPRESENTATIVE_ACCESS_SECRET",
+          "REPRESENTATIVE_WHATSAPP_AUTH_TOKEN",
+          "REPRESENTATIVE_WHATSAPP_ENDPOINT"
+        ]
+      }
+    }
+  }
+}

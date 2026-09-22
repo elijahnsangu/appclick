@@ -1,0 +1,62 @@
+{
+  "name": "@repo/database",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./keys": {
+      "types": "./keys.ts",
+      "default": "./keys.ts"
+    },
+    "./drizzle/client": {
+      "types": "./drizzle/client.ts",
+      "default": "./drizzle/client.ts"
+    },
+    "./drizzle/auth-schema": {
+      "types": "./drizzle/auth-schema.ts",
+      "default": "./drizzle/auth-schema.ts"
+    },
+    "./drizzle/schema": {
+      "types": "./drizzle/schema.ts",
+      "default": "./drizzle/schema.ts"
+    },
+    "./drizzle/relations": {
+      "types": "./drizzle/relations.ts",
+      "default": "./drizzle/relations.ts"
+    }
+  },
+  "scripts": {
+    "analyze": "drizzle-kit check --config=./drizzle.config.ts",
+    "build": "tsc --noEmit --emitDeclarationOnly false",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "db:drizzle:generate": "drizzle-kit generate --config=./drizzle.config.ts",
+    "db:drizzle:migrate": "drizzle-kit migrate --config=./drizzle.config.ts",
+    "db:drizzle:pull": "drizzle-kit pull --config=./drizzle.config.ts",
+    "db:drizzle:push": "drizzle-kit push --config=./drizzle.config.ts",
+    "test": "NODE_ENV=test vitest run",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@repo/business": "workspace:*",
+    "@repo/listing": "workspace:*",
+    "@t3-oss/env-nextjs": "^0.13.11",
+    "drizzle-orm": "1.0.0-rc.4",
+    "postgres": "^3.4.9",
+    "server-only": "^0.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "26.1.1",
+    "bufferutil": "^4.1.0",
+    "drizzle-kit": "1.0.0-rc.4",
+    "dotenv": "^17.4.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

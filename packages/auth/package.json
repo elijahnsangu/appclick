@@ -1,0 +1,78 @@
+{
+  "name": "@repo/auth",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./client": {
+      "types": "./client.ts",
+      "default": "./client.ts"
+    },
+    "./server": {
+      "types": "./server.ts",
+      "default": "./server.ts"
+    },
+    "./proxy": {
+      "types": "./proxy.ts",
+      "default": "./proxy.ts"
+    },
+    "./keys": {
+      "types": "./keys.ts",
+      "default": "./keys.ts"
+    },
+    "./handlers": {
+      "types": "./handlers.ts",
+      "default": "./handlers.ts"
+    },
+    "./provider": {
+      "types": "./provider.tsx",
+      "default": "./provider.tsx"
+    },
+    "./workers": {
+      "types": "./workers.ts",
+      "default": "./workers.ts"
+    },
+    "./components/sign-in": {
+      "types": "./components/sign-in.tsx",
+      "default": "./components/sign-in.tsx"
+    },
+    "./components/sign-up": {
+      "types": "./components/sign-up.tsx",
+      "default": "./components/sign-up.tsx"
+    },
+    "./components/forgot-password": {
+      "types": "./components/forgot-password.tsx",
+      "default": "./components/forgot-password.tsx"
+    },
+    "./components/reset-password": {
+      "types": "./components/reset-password.tsx",
+      "default": "./components/reset-password.tsx"
+    }
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "test": "NODE_ENV=test vitest run",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@repo/analytics": "workspace:*",
+    "@repo/database": "workspace:*",
+    "@repo/email": "workspace:*",
+    "@t3-oss/env-nextjs": "^0.13.11",
+    "better-auth": "^1.6.23",
+    "drizzle-orm": "1.0.0-rc.4",
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "server-only": "^0.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
+  "javascript": {
+    "globals": ["Liveblocks"]
+  },
+  "linter": {
+    "rules": {
+      "performance": {
+        "noBarrelFile": "off",
+        // Inline JSX handlers are idiomatic React; the flagged spots are error
+        // boundaries, Storybook stories, per-item loop handlers, and
+        // react-hook-form render props where extraction hurts readability more
+        // than the micro-rerender it saves. Opt out like noBarrelFile above.
+        "noJsxPropsBind": "off"
+      }
+    }
+  },
+  "files": {
+    "includes": [
+      "**/*",
+      "!.agents/skills",
+      "!packages/design-system/components/ui",
+      "!packages/design-system/lib",
+      "!packages/design-system/hooks",
+      "!packages/collaboration/config.ts",
+      "!packages/database/drizzle/migrations",
+      "!docs",
+      "!apps/docs/**/*.json",
+      "!apps/docs/**/*.svg",
+      "!apps/email/.react-email",
+      "!packages/cms/basehub-types.d.ts"
+    ]
+  },
+  "overrides": [
+    {
+      // Shared tsconfig presets are JSONC like any tsconfig; ultracite's
+      // allowComments override only matches **/tsconfig*.json names.
+      "includes": [
+        "packages/typescript-config/*.json",
+        "!packages/typescript-config/package.json"
+      ],
+      "json": {
+        "parser": {
+          "allowComments": true,
+          "allowTrailingCommas": true
+        }
+      }
+    }
+  ]
+}

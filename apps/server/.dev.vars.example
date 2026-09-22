@@ -1,0 +1,78 @@
+# Copy to `.dev.vars` for local `pnpm --filter server dev`.
+# Do not commit `.dev.vars`, `.dev.vars.preview`, or `.dev.vars.production`.
+
+# Neon direct connection string for the local/development database. Required.
+# Prefer a non-production Neon branch for local Worker development.
+DATABASE_URL="postgresql://neondb_owner:PASSWORD@HOST/DB?sslmode=require&channel_binding=require"
+
+# Runtime environment name. Defaults to "development" locally (also set in
+# wrangler.jsonc `vars`); "preview" and "production" are set per environment.
+ENVIRONMENT="development"
+
+# Log verbosity: debug | info | warn | error. Defaults to "info".
+LOG_LEVEL="debug"
+
+# Comma-separated list of origins allowed to call this Worker with credentials.
+CORS_ORIGINS="http://localhost:3000,http://localhost:3001,http://localhost:3004,http://localhost:3005"
+
+# better-auth session-signing secret and canonical auth URL. Optional
+# locally (better-auth falls back to development defaults); required in
+# preview and production.
+BETTER_AUTH_SECRET=""
+BETTER_AUTH_URL="http://localhost:8787"
+
+# Comma-separated Better Auth user ids allowed to review business
+# authority and Marketplace Role cases in the ops console.
+# Optional; defaults to nobody.
+OPS_REVIEWER_USER_IDS=""
+
+# Launch gate for business-authority personal-data processing:
+# "true" | "false". Defaults to "false", which denies every
+# business-authority operation with LAUNCH_GATE_CLOSED.
+PERSONAL_DATA_PROCESSING_ENABLED="false"
+
+# Launch gates remain closed unless the complete public Marketplace and
+# Standard Vehicle Listing publication surfaces are intentionally enabled.
+PUBLIC_MARKETPLACE_ENABLED="false"
+VEHICLE_LISTING_PUBLICATION_ENABLED="false"
+USD_VEHICLE_DISPLAY_ENABLED="false"
+
+# Comma-separated Listing ids subject to a current safety or legal publication
+# control. Controlled Listings fail closed during approval and public reads.
+VEHICLE_LISTING_PUBLICATION_BLOCK_IDS=""
+
+# Listing R2 bucket bindings and the public media origin are configured in
+# wrangler.jsonc. This secret signs five-minute private Review Evidence reads.
+# It is required when exercising Listing asset routes locally and must contain
+# at least 32 random characters.
+# LISTING_ASSET_READ_GRANT_KEY=""
+
+# HMAC key for private VIN and chassis fingerprints. Use at least 32 random
+# characters. Optional while Listing routes are unused locally; required in
+# preview and production.
+# LISTING_IDENTITY_HASH_KEY=""
+
+# Database transport: "neon" (default) or the development-only
+# "local-websocket", which requires a loopback DATABASE_URL and
+# LOCAL_DATABASE_WEBSOCKET_PROXY as a loopback host:port. The E2E
+# harness sets these; ordinary local development keeps "neon".
+DATABASE_TRANSPORT="neon"
+
+# Development-only opt-in that lets the E2E harness pin request time
+# through the x-marliket-e2e-now header: "true" | unset. The E2E
+# harness sets this; ordinary local development leaves it unset.
+# E2E_FIXED_CLOCK_ENABLED="true"
+
+# Representative invitation and OTP HMAC secret. Use at least 32 random
+# characters. Required in preview and production; leave unset for local
+# development so the development fallback applies.
+# REPRESENTATIVE_ACCESS_SECRET=""
+
+# Provider-neutral HTTPS endpoint and bearer token used to deliver
+# representative access OTPs over WhatsApp. Required in preview and production;
+# leave unset for local development.
+# REPRESENTATIVE_WHATSAPP_ENDPOINT=""
+# REPRESENTATIVE_WHATSAPP_AUTH_TOKEN=""
+
+# Development E2E only. Requires E2E_FIXED_CLOCK_ENABLED="true".
+# E2E_REPRESENTATIVE_OTP="123456"

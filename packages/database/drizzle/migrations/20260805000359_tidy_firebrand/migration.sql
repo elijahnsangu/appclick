@@ -1,0 +1,3 @@
+ALTER TABLE "RepresentativePermissionChange" RENAME COLUMN "requestedPermissions" TO "requestedAdditions";--> statement-breakpoint
+ALTER TABLE "RepresentativeInvitation" ADD COLUMN "inviterAuthorizationId" text NOT NULL;--> statement-breakpoint
+ALTER TABLE "RepresentativeInvitation" ADD CONSTRAINT "RepresentativeInvitation_inviterAuthorization_business_fkey" FOREIGN KEY ("inviterAuthorizationId","businessId") REFERENCES "RepresentativeAuthorization"("id","businessId") ON DELETE RESTRICT;

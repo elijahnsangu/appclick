@@ -1,0 +1,32 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+allowBuilds:
+  '@sentry/cli': true
+  bufferutil: true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  workerd: true
+# Exact-pinned versions from the latest-stable dependency bump that are still
+# inside pnpm's rolling minimumReleaseAge supply-chain window on this machine.
+# These are deliberately chosen pins (not a bypass of an unreviewed lockfile
+# change) - re-adding here unblocks `pnpm install`/`pnpm dev`/`pnpm build`,
+# which otherwise hard-fail non-interactively with ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION.
+# Machine-conditional: the window is a rolling clock check, not a repo invariant - safe to prune after 2026-07-24.
+minimumReleaseAgeExclude:
+  - '@cloudflare/workers-types@5.20260718.1'
+  - posthog-js@1.404.1
+  - react-hook-form@7.82.0
+  - svix@1.98.0
+  - '@biomejs/biome@2.5.6'
+  - '@biomejs/cli-darwin-arm64@2.5.6'
+  - '@biomejs/cli-darwin-x64@2.5.6'
+  - '@biomejs/cli-linux-arm64-musl@2.5.6'
+  - '@biomejs/cli-linux-arm64@2.5.6'
+  - '@biomejs/cli-linux-x64-musl@2.5.6'
+  - '@biomejs/cli-linux-x64@2.5.6'
+  - '@biomejs/cli-win32-arm64@2.5.6'
+  - '@biomejs/cli-win32-x64@2.5.6'

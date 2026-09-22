@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter server build:types && pnpm build",
+  "bunVersion": "1.x",
+  "ignoreCommand": "node scripts/skip-ci.js"
+}

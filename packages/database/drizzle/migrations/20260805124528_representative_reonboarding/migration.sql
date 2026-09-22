@@ -1,0 +1,2 @@
+ALTER TABLE "RepresentativeAuthorization" DROP CONSTRAINT "RepresentativeAuthorization_accountId_businessId_key";--> statement-breakpoint
+CREATE UNIQUE INDEX "RepresentativeAuthorization_accountId_businessId_live_key" ON "RepresentativeAuthorization" ("accountId","businessId") WHERE "state" NOT IN ('ENDED', 'REVOKED', 'REJECTED');

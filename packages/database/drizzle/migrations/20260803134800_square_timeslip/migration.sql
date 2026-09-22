@@ -1,0 +1,7 @@
+ALTER TABLE "MarketplaceRoleApplicationRevision" RENAME CONSTRAINT "MarketplaceRoleApplicationRevision_application_business_role_fkey" TO "MarketplaceRoleApplicationRevision_app_business_role_fkey";--> statement-breakpoint
+ALTER TABLE "MarketplaceRoleDecisionEffect" RENAME CONSTRAINT "MarketplaceRoleDecisionEffect_revision_application_business_role_fkey" TO "MarketplaceRoleDecisionEffect_revision_app_business_role_fkey";--> statement-breakpoint
+ALTER TABLE "OperationsCase" RENAME CONSTRAINT "OperationsCase_marketplaceRoleRevision_application_business_role_fkey" TO "OperationsCase_roleRevision_app_business_role_fkey";--> statement-breakpoint
+ALTER TABLE "ReviewChecklistOutcome" RENAME CONSTRAINT "ReviewChecklistOutcome_roleRevision_application_business_role_fkey" TO "ReviewChecklistOutcome_roleRevision_app_business_role_fkey";--> statement-breakpoint
+ALTER TABLE "MarketplaceRoleApplicationRevision" RENAME CONSTRAINT "MarketplaceRoleApplicationRevision_applicationId_revisionNumber_key" TO "MarketplaceRoleApplicationRevision_application_revision_key";--> statement-breakpoint
+ALTER TABLE "MarketplaceRoleApplicationRevision" RENAME CONSTRAINT "MarketplaceRoleApplicationRevision_id_applicationId_businessId_role_key" TO "MarketplaceRoleApplicationRevision_id_app_business_role_key";--> statement-breakpoint
+CREATE INDEX "MarketplaceRoleDecision_business_role_subject_idx" ON "MarketplaceRoleDecision" ("businessId","marketplaceRoleId","role");

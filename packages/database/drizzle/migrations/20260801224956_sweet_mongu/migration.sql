@@ -1,0 +1,4 @@
+ALTER TABLE "MarketplaceRoleDecisionEffect" DROP CONSTRAINT "MarketplaceRoleDecisionEffect_exactEligibilityDecision_fkey";--> statement-breakpoint
+ALTER TABLE "MarketplaceRoleDecision" DROP CONSTRAINT "MarketplaceRoleDecision_id_roleEligibilityEffect_key";--> statement-breakpoint
+ALTER TABLE "MarketplaceRoleDecision" ADD CONSTRAINT "MarketplaceRoleDecision_id_business_role_kind_key" UNIQUE("id","businessId","role","kind");--> statement-breakpoint
+ALTER TABLE "MarketplaceRoleDecisionEffect" ADD CONSTRAINT "MarketplaceRoleDecisionEffect_exactDecisionKind_fkey" FOREIGN KEY ("decisionId","businessId","role","decisionKind") REFERENCES "MarketplaceRoleDecision"("id","businessId","role","kind") ON DELETE RESTRICT;

@@ -1,0 +1,1 @@
+CREATE INDEX "OperationsCase_roleQueue_state_updatedAt_id_idx" ON "OperationsCase" ("subjectType","state","updatedAt" DESC NULLS LAST,"id" DESC NULLS LAST);

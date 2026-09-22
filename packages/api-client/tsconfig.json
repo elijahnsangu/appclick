@@ -1,0 +1,15 @@
+{
+  "extends": "@repo/typescript-config/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noEmit": true,
+    // Overrides base.json's NodeNext: this package is consumed only by the
+    // Next.js apps (Bundler resolution), and importing the server's RPC
+    // declaration drags @repo/database source into the graph, whose NodeNext
+    // extension-less imports would otherwise raise TS2835 here.
+    "module": "preserve",
+    "moduleResolution": "Bundler"
+  },
+  "include": ["index.ts", "src/**/*.ts", "src/**/*.tsx", "__tests__/**/*.ts"],
+  "exclude": ["node_modules"]
+}

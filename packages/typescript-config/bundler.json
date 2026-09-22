@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Bundled library",
+  // For code that is only ever consumed through a bundler (Turbopack, esbuild/
+  // wrangler, vite) and never runs as raw Node ESM. Required for any program
+  // that compiles packages/database sources: those keep extensionless relative
+  // imports for Turbopack, which NodeNext rejects (TS2835), and NodeNext also
+  // splits drizzle-orm into incompatible require/import type identities
+  // (TS2345 dual-package hazard).
+  "extends": "./base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  }
+}

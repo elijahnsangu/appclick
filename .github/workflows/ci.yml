@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, production]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint changed files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          if ! git rev-parse --verify --quiet "${BASE}^{commit}" >/dev/null; then
+            echo "No valid base ref (${BASE}); skipping changed-files lint."
+            exit 0
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACMR "${BASE}...HEAD" \
+            | grep -E '\.(ts|tsx|js|jsx|mjs|json|jsonc)$' || true)
+          if [ -n "$FILES" ]; then
+            echo "Linting changed files:"
+            echo "$FILES"
+            npx @biomejs/biome check $FILES
+          else
+            echo "No lintable files changed."
+          fi
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        # Env validation runs (skip-validation breaks @t3-oss/env extends-merge,
+        # dropping NEXT_PUBLIC_* client vars). DATABASE_URL is the only REQUIRED
+        # var; the rest (CMS, email, observability, feature flags, rate
+        # limiting) are optional. These are non-secret placeholders -
+        # DATABASE_URL is never connected to at build, and the URLs only need
+        # to be valid for `new URL(...)` in app layouts.
+        env:
+          DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+          NEXT_PUBLIC_WEB_URL: "https://web.example.com"
+          NEXT_PUBLIC_APP_URL: "https://app.example.com"
+          NEXT_PUBLIC_API_URL: "https://api.example.com"
+          NEXT_PUBLIC_DOCS_URL: "https://docs.example.com"
+        run: >-
+          pnpm turbo build
+          --filter=app --filter=pro --filter=server

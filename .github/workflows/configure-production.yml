@@ -1,0 +1,537 @@
+name: Configure production providers
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type CONFIGURE_PRODUCTION to stage provider configuration without deploying traffic.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: configure-production-providers
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate production authorization
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/production"
+          test "$CONFIRMATION" = "CONFIGURE_PRODUCTION"
+
+  preflight:
+    environment: production
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate configuration and provider access
+        env:
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REPRESENTATIVE_ACCESS_SECRET: ${{ secrets.REPRESENTATIVE_ACCESS_SECRET }}
+          REPRESENTATIVE_WHATSAPP_AUTH_TOKEN: ${{ secrets.REPRESENTATIVE_WHATSAPP_AUTH_TOKEN }}
+          REPRESENTATIVE_WHATSAPP_ENDPOINT: ${{ secrets.REPRESENTATIVE_WHATSAPP_ENDPOINT }}
+          SENTRY_APP_DSN: ${{ vars.SENTRY_APP_DSN }}
+          SENTRY_APP_PROJECT: ${{ vars.SENTRY_APP_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_OPS_DSN: ${{ vars.SENTRY_OPS_DSN }}
+          SENTRY_OPS_PROJECT: ${{ vars.SENTRY_OPS_PROJECT }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PRO_DSN: ${{ vars.SENTRY_PRO_DSN }}
+          SENTRY_PRO_PROJECT: ${{ vars.SENTRY_PRO_PROJECT }}
+          SENTRY_WEB_DSN: ${{ vars.SENTRY_WEB_DSN }}
+          SENTRY_WEB_PROJECT: ${{ vars.SENTRY_WEB_PROJECT }}
+          VERCEL_APP_PROJECT_ID: ${{ vars.VERCEL_APP_PROJECT_ID }}
+          VERCEL_OPS_PROJECT_ID: ${{ vars.VERCEL_OPS_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PRO_PROJECT_ID: ${{ vars.VERCEL_PRO_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_WEB_PROJECT_ID: ${{ vars.VERCEL_WEB_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+
+          require_nonempty() {
+            if [ -z "$2" ]; then
+              echo "::error::$1 is not configured."
+              exit 1
+            fi
+          }
+
+          require_exact() {
+            if [ "$2" != "$3" ]; then
+              echo "::error::$1 does not match the required Marliket resource."
+              exit 1
+            fi
+          }
+
+          require_nonempty BETTER_AUTH_SECRET "$BETTER_AUTH_SECRET"
+          require_nonempty CLOUDFLARE_ACCOUNT_ID "$CLOUDFLARE_ACCOUNT_ID"
+          require_nonempty CLOUDFLARE_API_TOKEN "$CLOUDFLARE_API_TOKEN"
+          require_nonempty DATABASE_URL "$DATABASE_URL"
+          require_nonempty REPRESENTATIVE_ACCESS_SECRET "$REPRESENTATIVE_ACCESS_SECRET"
+          require_nonempty REPRESENTATIVE_WHATSAPP_AUTH_TOKEN "$REPRESENTATIVE_WHATSAPP_AUTH_TOKEN"
+          require_nonempty REPRESENTATIVE_WHATSAPP_ENDPOINT "$REPRESENTATIVE_WHATSAPP_ENDPOINT"
+          require_nonempty SENTRY_APP_DSN "$SENTRY_APP_DSN"
+          require_nonempty SENTRY_APP_PROJECT "$SENTRY_APP_PROJECT"
+          require_nonempty SENTRY_AUTH_TOKEN "$SENTRY_AUTH_TOKEN"
+          require_nonempty SENTRY_OPS_DSN "$SENTRY_OPS_DSN"
+          require_nonempty SENTRY_OPS_PROJECT "$SENTRY_OPS_PROJECT"
+          require_nonempty SENTRY_ORG "$SENTRY_ORG"
+          require_nonempty SENTRY_PRO_DSN "$SENTRY_PRO_DSN"
+          require_nonempty SENTRY_PRO_PROJECT "$SENTRY_PRO_PROJECT"
+          require_nonempty SENTRY_WEB_DSN "$SENTRY_WEB_DSN"
+          require_nonempty SENTRY_WEB_PROJECT "$SENTRY_WEB_PROJECT"
+          require_nonempty VERCEL_APP_PROJECT_ID "$VERCEL_APP_PROJECT_ID"
+          require_nonempty VERCEL_OPS_PROJECT_ID "$VERCEL_OPS_PROJECT_ID"
+          require_nonempty VERCEL_ORG_ID "$VERCEL_ORG_ID"
+          require_nonempty VERCEL_PRO_PROJECT_ID "$VERCEL_PRO_PROJECT_ID"
+          require_nonempty VERCEL_TOKEN "$VERCEL_TOKEN"
+          require_nonempty VERCEL_WEB_PROJECT_ID "$VERCEL_WEB_PROJECT_ID"
+
+          require_exact SENTRY_APP_PROJECT "$SENTRY_APP_PROJECT" marliket-app
+          require_exact SENTRY_WEB_PROJECT "$SENTRY_WEB_PROJECT" marliket-web
+          require_exact SENTRY_PRO_PROJECT "$SENTRY_PRO_PROJECT" marliket-pro
+          require_exact SENTRY_OPS_PROJECT "$SENTRY_OPS_PROJECT" marliket-ops
+          require_exact SENTRY_ORG "$SENTRY_ORG" marliket
+
+          case "$DATABASE_URL" in
+            postgres://* | postgresql://*) ;;
+            *)
+              echo "::error::DATABASE_URL is not a PostgreSQL connection URL."
+              exit 1
+              ;;
+          esac
+
+          if [ "${#BETTER_AUTH_SECRET}" -lt 32 ]; then
+            echo "::error::BETTER_AUTH_SECRET is shorter than 32 characters."
+            exit 1
+          fi
+
+          if [ "${#REPRESENTATIVE_ACCESS_SECRET}" -lt 32 ]; then
+            echo "::error::REPRESENTATIVE_ACCESS_SECRET is shorter than 32 characters."
+            exit 1
+          fi
+
+          case "$REPRESENTATIVE_WHATSAPP_ENDPOINT" in
+            https://*) ;;
+            *)
+              echo "::error::REPRESENTATIVE_WHATSAPP_ENDPOINT is not an HTTPS URL."
+              exit 1
+              ;;
+          esac
+
+          if [ "$CLOUDFLARE_ACCOUNT_ID" != "fb61a35f950d9c37da31285f3b676d9f" ]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID does not match the Marliket account pinned in apps/server/wrangler.jsonc."
+            exit 1
+          fi
+
+          case "$VERCEL_ORG_ID" in
+            team_*) ;;
+            *)
+              echo "::error::VERCEL_ORG_ID has an invalid format."
+              exit 1
+              ;;
+          esac
+
+          for project_id in \
+            "$VERCEL_APP_PROJECT_ID" \
+            "$VERCEL_WEB_PROJECT_ID" \
+            "$VERCEL_PRO_PROJECT_ID" \
+            "$VERCEL_OPS_PROJECT_ID"
+          do
+            case "$project_id" in
+              prj_*) ;;
+              *)
+                echo "::error::A Vercel project ID has an invalid format."
+                exit 1
+                ;;
+            esac
+          done
+
+          for sentry_dsn in \
+            "$SENTRY_APP_DSN" \
+            "$SENTRY_WEB_DSN" \
+            "$SENTRY_PRO_DSN" \
+            "$SENTRY_OPS_DSN"
+          do
+            case "$sentry_dsn" in
+              https://*@*.sentry.io/*) ;;
+              *)
+                echo "::error::A Sentry DSN is not an HTTPS sentry.io project DSN."
+                exit 1
+                ;;
+            esac
+          done
+
+          sentry_dsn_count="$(
+            printf '%s\n' \
+              "$SENTRY_APP_DSN" \
+              "$SENTRY_WEB_DSN" \
+              "$SENTRY_PRO_DSN" \
+              "$SENTRY_OPS_DSN" \
+              | sort --unique \
+              | wc --lines \
+              | tr --delete '[:space:]'
+          )"
+          if [ "$sentry_dsn_count" -ne 4 ]; then
+            echo "::error::Each Marliket application must use a distinct Sentry DSN."
+            exit 1
+          fi
+
+          response_file="$RUNNER_TEMP/production-provider-preflight.json"
+          sentry_keys_file="$RUNNER_TEMP/sentry-project-keys.json"
+          sentry_projects_file="$RUNNER_TEMP/sentry-projects.json"
+          trap 'rm -f "$response_file" "$sentry_keys_file" "$sentry_projects_file"' EXIT
+          umask 077
+
+          status="$(
+            curl --silent --show-error \
+              --output "$sentry_projects_file" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+              "https://sentry.io/api/0/organizations/$SENTRY_ORG/projects/"
+          )"
+          if [ "$status" != "200" ]; then
+            echo "::error::Sentry organization and project access check failed with HTTP $status."
+            exit 1
+          fi
+
+          status="$(
+            curl --silent --show-error \
+              --output "$sentry_keys_file" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+              "https://sentry.io/api/0/organizations/$SENTRY_ORG/project-keys/"
+          )"
+          if [ "$status" != "200" ]; then
+            echo "::error::Sentry project key access check failed with HTTP $status."
+            exit 1
+          fi
+
+          check_sentry_project() {
+            local project_slug="$1"
+            local expected_dsn="$2"
+            local project_id
+
+            if ! project_id="$(
+              jq --exit-status --raw-output \
+                --arg project_slug "$project_slug" \
+                '[.[] | select(.slug == $project_slug)] | select(length == 1) | .[0].id | tostring' \
+                "$sentry_projects_file"
+            )"
+            then
+              echo "::error::Sentry did not return exactly one project with slug $project_slug."
+              exit 1
+            fi
+
+            if ! jq --exit-status \
+              --arg expected_dsn "$expected_dsn" \
+              --arg project_id "$project_id" \
+              'any(.[]; ((.projectId | tostring) == $project_id) and (.isActive == true) and (.dsn.public == $expected_dsn))' \
+              "$sentry_keys_file" > /dev/null
+            then
+              echo "::error::Sentry DSN does not belong to the active $project_slug project."
+              exit 1
+            fi
+          }
+
+          check_sentry_project "$SENTRY_APP_PROJECT" "$SENTRY_APP_DSN"
+          check_sentry_project "$SENTRY_WEB_PROJECT" "$SENTRY_WEB_DSN"
+          check_sentry_project "$SENTRY_PRO_PROJECT" "$SENTRY_PRO_DSN"
+          check_sentry_project "$SENTRY_OPS_PROJECT" "$SENTRY_OPS_DSN"
+
+          check_vercel_project() {
+            local project_id="$1"
+            local expected_name="$2"
+            local status
+            status="$(
+              curl --silent --show-error \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                --header "Authorization: Bearer $VERCEL_TOKEN" \
+                "https://api.vercel.com/v9/projects/$project_id?teamId=$VERCEL_ORG_ID"
+            )"
+            if [ "$status" != "200" ]; then
+              echo "::error::Vercel project access check failed with HTTP $status."
+              exit 1
+            fi
+            if ! jq --exit-status \
+              --arg project_id "$project_id" \
+              --arg expected_name "$expected_name" \
+              '.id == $project_id and .name == $expected_name' \
+              "$response_file" > /dev/null
+            then
+              echo "::error::Vercel project access check returned an unexpected project."
+              exit 1
+            fi
+          }
+
+          check_vercel_project "$VERCEL_APP_PROJECT_ID" marliket-app
+          check_vercel_project "$VERCEL_WEB_PROJECT_ID" marliket-web
+          check_vercel_project "$VERCEL_PRO_PROJECT_ID" marliket-pro
+          check_vercel_project "$VERCEL_OPS_PROJECT_ID" marliket-ops
+
+          status="$(
+            curl --silent --show-error \
+              --output "$response_file" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/workers"
+          )"
+          if [ "$status" != "200" ] || ! jq --exit-status '.success == true' "$response_file" > /dev/null; then
+            echo "::error::Cloudflare account access check failed with HTTP $status."
+            exit 1
+          fi
+
+          status="$(
+            curl --silent --show-error \
+              --output "$response_file" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/workers/marliket-server-production"
+          )"
+          case "$status" in
+            200)
+              if ! jq --exit-status '.success == true and .result.name == "marliket-server-production"' "$response_file" > /dev/null; then
+                echo "::error::Cloudflare Worker access check returned an unexpected resource."
+                exit 1
+              fi
+              ;;
+            404) ;;
+            *)
+              echo "::error::Cloudflare Worker access check failed with HTTP $status."
+              exit 1
+              ;;
+          esac
+
+  ensure-worker:
+    environment: production
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure non-serving Production Worker resource
+        id: ensure
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/workers"
+          response_file="$RUNNER_TEMP/production-worker-resource.json"
+          trap 'rm -f "$response_file"' EXIT
+          umask 077
+
+          status="$(
+            curl --silent --show-error \
+              --output "$response_file" \
+              --write-out '%{http_code}' \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              "$endpoint/marliket-server-production"
+          )"
+
+          if [ "$status" = "404" ]; then
+            status="$(
+              curl --silent --show-error \
+                --output "$response_file" \
+                --write-out '%{http_code}' \
+                --request POST \
+                --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+                --header 'Content-Type: application/json' \
+                --data '{"name":"marliket-server-production"}' \
+                "$endpoint"
+            )"
+            if [ "$status" != "200" ]; then
+              echo "::error::Cloudflare Worker resource creation failed with HTTP $status."
+              exit 1
+            fi
+            if ! jq --exit-status '.success == true and .result.name == "marliket-server-production"' "$response_file" > /dev/null; then
+              echo "::error::Cloudflare Worker resource creation returned an unexpected resource."
+              exit 1
+            fi
+            echo "created=true" >> "$GITHUB_OUTPUT"
+          elif [ "$status" = "200" ]; then
+            if ! jq --exit-status '.success == true and .result.name == "marliket-server-production"' "$response_file" > /dev/null; then
+              echo "::error::Cloudflare Worker lookup returned an unexpected resource."
+              exit 1
+            fi
+            echo "created=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Cloudflare Worker lookup failed with HTTP $status."
+            exit 1
+          fi
+
+      - name: Record Worker resource boundary
+        env:
+          WORKER_CREATED: ${{ steps.ensure.outputs.created }}
+        run: |
+          {
+            printf '%s\n' '## Production Worker resource'
+            printf '%s\n' "- Resource created by this run: $WORKER_CREATED."
+            printf '%s\n' '- No code, deployment, route, or traffic assignment was created by this step.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  upload-worker-version:
+    environment: production
+    needs: ensure-worker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare Worker secrets file
+        env:
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REPRESENTATIVE_ACCESS_SECRET: ${{ secrets.REPRESENTATIVE_ACCESS_SECRET }}
+          REPRESENTATIVE_WHATSAPP_AUTH_TOKEN: ${{ secrets.REPRESENTATIVE_WHATSAPP_AUTH_TOKEN }}
+          REPRESENTATIVE_WHATSAPP_ENDPOINT: ${{ secrets.REPRESENTATIVE_WHATSAPP_ENDPOINT }}
+          SECRETS_FILE: ${{ runner.temp }}/marliket-production-secrets.json
+        run: |
+          set -euo pipefail
+          umask 077
+          node --input-type=module -e 'import { writeFileSync } from "node:fs"; writeFileSync(process.env.SECRETS_FILE, JSON.stringify({ DATABASE_URL: process.env.DATABASE_URL, BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET, REPRESENTATIVE_ACCESS_SECRET: process.env.REPRESENTATIVE_ACCESS_SECRET, REPRESENTATIVE_WHATSAPP_AUTH_TOKEN: process.env.REPRESENTATIVE_WHATSAPP_AUTH_TOKEN, REPRESENTATIVE_WHATSAPP_ENDPOINT: process.env.REPRESENTATIVE_WHATSAPP_ENDPOINT }));'
+
+      - name: Upload undeployed Production Worker version
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SECRETS_FILE: ${{ runner.temp }}/marliket-production-secrets.json
+        run: |
+          pnpm --filter server exec wrangler versions upload --env production --secrets-file "$SECRETS_FILE" --strict --tag "$GITHUB_SHA" --message "Production configuration candidate $GITHUB_SHA"
+
+      - name: Remove Worker secrets file
+        if: always()
+        env:
+          SECRETS_FILE: ${{ runner.temp }}/marliket-production-secrets.json
+        run: rm -f "$SECRETS_FILE"
+
+      - name: Record Worker version boundary
+        run: |
+          {
+            printf '%s\n' '## Production Worker version'
+            printf '%s\n' '- A Cloudflare Worker version was uploaded but no Worker deployment was created.'
+            printf '%s\n' '- No route or traffic assignment was changed.'
+            printf '%s\n' '- Personal-data processing remains disabled.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  configure-vercel:
+    environment: production
+    needs: upload-worker-version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        include:
+          - app: app
+            authenticated: true
+            auth_url: https://app.marliket.com
+            project_id: ${{ vars.VERCEL_APP_PROJECT_ID }}
+            sentry_dsn: ${{ vars.SENTRY_APP_DSN }}
+            sentry_project: ${{ vars.SENTRY_APP_PROJECT }}
+          - app: web
+            authenticated: false
+            auth_url: ""
+            project_id: ${{ vars.VERCEL_WEB_PROJECT_ID }}
+            sentry_dsn: ${{ vars.SENTRY_WEB_DSN }}
+            sentry_project: ${{ vars.SENTRY_WEB_PROJECT }}
+          - app: pro
+            authenticated: true
+            auth_url: https://pro.marliket.com
+            project_id: ${{ vars.VERCEL_PRO_PROJECT_ID }}
+            sentry_dsn: ${{ vars.SENTRY_PRO_DSN }}
+            sentry_project: ${{ vars.SENTRY_PRO_PROJECT }}
+          - app: ops
+            authenticated: true
+            auth_url: https://ops.marliket.com
+            project_id: ${{ vars.VERCEL_OPS_PROJECT_ID }}
+            sentry_dsn: ${{ vars.SENTRY_OPS_DSN }}
+            sentry_project: ${{ vars.SENTRY_OPS_PROJECT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Configure public Production URLs
+        env:
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ matrix.project_id }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          set -euo pipefail
+          printf '%s' 'https://marliket.com' | pnpm dlx vercel@55.0.0 env add NEXT_PUBLIC_WEB_URL production --force --yes --no-sensitive
+          printf '%s' 'https://app.marliket.com' | pnpm dlx vercel@55.0.0 env add NEXT_PUBLIC_APP_URL production --force --yes --no-sensitive
+          printf '%s' 'https://pro.marliket.com' | pnpm dlx vercel@55.0.0 env add NEXT_PUBLIC_PRO_URL production --force --yes --no-sensitive
+          printf '%s' 'https://api.marliket.com' | pnpm dlx vercel@55.0.0 env add NEXT_PUBLIC_API_URL production --force --yes --no-sensitive
+
+      - name: Configure Production error monitoring
+        env:
+          NEXT_PUBLIC_SENTRY_DSN: ${{ matrix.sentry_dsn }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ matrix.sentry_project }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ matrix.project_id }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$NEXT_PUBLIC_SENTRY_DSN" | pnpm dlx vercel@55.0.0 env add NEXT_PUBLIC_SENTRY_DSN production --force --yes --no-sensitive
+          printf '%s' "$SENTRY_ORG" | pnpm dlx vercel@55.0.0 env add SENTRY_ORG production --force --yes --no-sensitive
+          printf '%s' "$SENTRY_PROJECT" | pnpm dlx vercel@55.0.0 env add SENTRY_PROJECT production --force --yes --no-sensitive
+          printf '%s' "$SENTRY_AUTH_TOKEN" | pnpm dlx vercel@55.0.0 env add SENTRY_AUTH_TOKEN production --force --yes --sensitive
+
+      - name: Configure authenticated Production runtime
+        if: matrix.authenticated
+        env:
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ matrix.auth_url }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ matrix.project_id }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$DATABASE_URL" | pnpm dlx vercel@55.0.0 env add DATABASE_URL production --force --yes --sensitive
+          printf '%s' "$BETTER_AUTH_SECRET" | pnpm dlx vercel@55.0.0 env add BETTER_AUTH_SECRET production --force --yes --sensitive
+          printf '%s' "$BETTER_AUTH_URL" | pnpm dlx vercel@55.0.0 env add BETTER_AUTH_URL production --force --yes --no-sensitive
+
+      - name: Record Vercel configuration boundary
+        env:
+          APP: ${{ matrix.app }}
+        run: |
+          {
+            printf '%s\n' "## Vercel $APP Production configuration"
+            printf '%s\n' '- Production variables were updated without creating or promoting a deployment.'
+          } >> "$GITHUB_STEP_SUMMARY"

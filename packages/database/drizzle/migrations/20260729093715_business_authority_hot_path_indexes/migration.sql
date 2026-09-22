@@ -1,0 +1,3 @@
+CREATE INDEX "BusinessAuthorityIdempotency_operation_key_subject_idx" ON "BusinessAuthorityIdempotency" ("operation","idempotencyKey","subjectId");--> statement-breakpoint
+CREATE INDEX "OperationsCaseEvent_caseId_sequence_idx" ON "OperationsCaseEvent" ("caseId","sequence");--> statement-breakpoint
+CREATE INDEX "OperationsCaseEvent_applicationId_kind_sequence_idx" ON "OperationsCaseEvent" ("applicationId","kind","sequence");

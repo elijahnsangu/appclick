@@ -1,0 +1,17 @@
+{
+  "extends": "@repo/typescript-config/bundler.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@repo/*": ["../../packages/*"]
+    }
+  },
+  "include": [
+    "worker-configuration.d.ts",
+    "src/**/*.ts",
+    "__tests__/**/*.ts",
+    "vitest.config.mts"
+  ]
+}

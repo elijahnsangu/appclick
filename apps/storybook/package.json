@@ -1,0 +1,43 @@
+{
+  "name": "storybook",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "storybook dev -p 6006",
+    "build": "storybook build",
+    "chromatic": "chromatic --exit-zero-on-changes",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
+    "@repo/design-system": "workspace:*",
+    "cmdk": "^1.1.1",
+    "date-fns": "^4.4.0",
+    "input-otp": "^1.4.2",
+    "lucide-react": "^1.25.0",
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-hook-form": "^7.82.0",
+    "recharts": "^3.9.2",
+    "sonner": "^2.0.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^5.2.1",
+    "@repo/typescript-config": "workspace:*",
+    "@storybook/addon-onboarding": "^10.5.2",
+    "@storybook/addon-themes": "^10.5.2",
+    "@storybook/nextjs": "^10.5.2",
+    "@storybook/react": "^10.5.2",
+    "@types/node": "^26",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "chromatic": "^18.0.1",
+    "postcss": "^8",
+    "storybook": "^10.5.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}

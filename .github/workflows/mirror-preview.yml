@@ -1,0 +1,24 @@
+# Mirrors main into the `preview` branch on every push. The preview branch is
+# a MACHINE-OWNED fast-forward pointer - never commit to it by hand. It exists
+# only because Vercel cannot pin a domain to the production branch: the
+# *-preview.marliket.com domains are pinned to `preview`, so preview deployments
+# build with PREVIEW environment variables (BETTER_AUTH_URL, API URL) while
+# production domains ship by promotion.
+name: Mirror main to preview
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Fast-forward preview to main
+        run: git push origin main:preview

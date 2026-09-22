@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    // Templates are also consumed outside Next.js (rendered server-side in
+    // the `server` Cloudflare Worker via @react-email/render, and transformed
+    // directly by esbuild/Vite in that context) - "preserve" only works when
+    // a framework compiler (Next/SWC) does a further JSX pass downstream, so
+    // this package overrides it to a JSX mode that's self-contained.
+    "jsx": "react-jsx"
+  },
+  "include": ["./**/*.ts", "./**/*.tsx"],
+  "exclude": ["node_modules"]
+}

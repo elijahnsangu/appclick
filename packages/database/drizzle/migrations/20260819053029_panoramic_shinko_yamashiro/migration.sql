@@ -1,0 +1,1 @@
+ALTER TABLE "ListingAsset" ADD CONSTRAINT "ListingAsset_uploadExpiry_after_creation_check" CHECK ("uploadExpiresAt" > "createdAt");

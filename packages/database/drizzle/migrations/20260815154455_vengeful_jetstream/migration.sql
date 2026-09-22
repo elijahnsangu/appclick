@@ -1,0 +1,3 @@
+ALTER TABLE "VehicleDiscoveryDocument" DROP CONSTRAINT "VehicleDiscoveryDocument_location_business_version_fkey";--> statement-breakpoint
+ALTER TABLE "BusinessLocation" DROP CONSTRAINT "BusinessLocation_id_businessId_version_key";--> statement-breakpoint
+ALTER TABLE "VehicleDiscoveryDocument" ADD CONSTRAINT "VehicleDiscoveryDocument_location_business_fkey" FOREIGN KEY ("businessLocationId","businessId") REFERENCES "BusinessLocation"("id","businessId") ON DELETE RESTRICT;

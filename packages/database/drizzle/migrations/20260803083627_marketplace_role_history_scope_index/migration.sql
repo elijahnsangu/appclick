@@ -1,0 +1,1 @@
+CREATE INDEX "OperationsCase_roleHistory_scope_order_idx" ON "OperationsCase" ("marketplaceRoleBusinessId","marketplaceRoleName","updatedAt" DESC NULLS LAST,"id" DESC NULLS LAST);

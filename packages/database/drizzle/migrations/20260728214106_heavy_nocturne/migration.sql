@@ -1,0 +1,1 @@
+ALTER TABLE "BusinessApplicationRevision" DROP CONSTRAINT "BusinessApplicationRevision_applicationId_submissionHash_key";

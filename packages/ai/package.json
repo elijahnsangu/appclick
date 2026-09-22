@@ -12,7 +12,7 @@
     "ai": "^7.0.31",
     "react": "19.2.7",
     "streamdown": "^2.5.0",
-    "tailwind-merge": "^3.6.0",
+    "tailwind-merge": "^3.7.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

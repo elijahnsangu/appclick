@@ -59,7 +59,7 @@
     "@repo/database": "workspace:*",
     "@repo/email": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.11",
-    "better-auth": "^1.6.23",
+    "better-auth": "^1.7.5",
     "drizzle-orm": "1.0.0-rc.4",
     "next": "16.2.10",
     "react": "19.2.7",
